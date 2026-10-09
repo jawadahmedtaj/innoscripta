@@ -25,6 +25,7 @@ import {
   costPerPm,
   employeeRates,
   tree,
+  treeOptionLabel,
 } from './components';
 import './styles.css';
 import { formatNumber, message, usePlanning, useSession } from '@baseline/platform';
@@ -66,6 +67,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
   const [dialog, setDialog] = useState<
     'create' | 'rename' | 'move' | 'delete' | 'allocation' | null
   >(null);
+  const [dialogItemId, setDialogItemId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
   const [draftParent, setDraftParent] = useState<string>('');
   const [draftEmployee, setDraftEmployee] = useState('emp-001');
@@ -120,7 +122,14 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
       }),
     [months, projectId, projectTotal, selected, session.currency, snapshot, unit],
   );
-  const closeDialog = (): void => setDialog(null);
+  const closeDialog = (): void => {
+    setDialog(null);
+    setDialogItemId(null);
+  };
+  const dialogItem =
+    dialogItemId === null
+      ? undefined
+      : snapshot.breakdownItems.find((item) => item.id === dialogItemId);
 
   const run = async (action: () => Promise<void>, success: string): Promise<void> => {
     setSaving(true);
@@ -128,7 +137,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
     try {
       await action();
       setNotice(success);
-      setDialog(null);
+      closeDialog();
     } catch (cause) {
       setError(message(cause));
     } finally {
@@ -320,6 +329,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
               onClick={() => {
                 setDraftName('');
                 setDraftParent(selectedIsLeaf ? (selected?.parentId ?? '') : (selected?.id ?? ''));
+                setDialogItemId(null);
                 setDialog('create');
               }}
             >
@@ -350,6 +360,11 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
               />
             ))}
           </ul>
+          {projectTree.length === 0 && (
+            <p className="muted empty-state">
+              No breakdown items in this project. Add one to begin.
+            </p>
+          )}
           {selected && (
             <div className="tree-actions">
               <strong>{selected.name}</strong>
@@ -359,6 +374,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
                   className="button secondary"
                   onClick={() => {
                     setDraftName(selected.name);
+                    setDialogItemId(selected.id);
                     setDialog('rename');
                   }}
                 >
@@ -369,12 +385,20 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
                   className="button secondary"
                   onClick={() => {
                     setDraftParent(selected.parentId ?? '');
+                    setDialogItemId(selected.id);
                     setDialog('move');
                   }}
                 >
                   Move
                 </button>
-                <button type="button" className="button danger" onClick={() => setDialog('delete')}>
+                <button
+                  type="button"
+                  className="button danger"
+                  onClick={() => {
+                    setDialogItemId(selected.id);
+                    setDialog('delete');
+                  }}
+                >
                   Delete
                 </button>
               </div>
@@ -461,6 +485,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
                 min="0"
                 step="any"
                 value={draftValue}
+                disabled={draftUnit === 'cost' && costUnavailable}
                 onChange={(event) => {
                   setDraftValue(event.target.value);
                   setDraftDirty(true);
@@ -530,7 +555,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
                   .filter((item) => item.projectId === projectId)
                   .map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name}
+                      {treeOptionLabel(snapshot.breakdownItems, item.id)}
                     </option>
                   ))}
               </select>
@@ -550,7 +575,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
           </form>
         </Modal>
       )}
-      {dialog === 'rename' && selected && (
+      {dialog === 'rename' && dialogItem && (
         <Modal title="Rename breakdown item" onClose={closeDialog}>
           <form
             onSubmit={(event) => {
@@ -560,7 +585,7 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
                 return;
               }
               void run(
-                () => services.planning.delivery.renameItem(selected.id, draftName.trim()),
+                () => services.planning.delivery.renameItem(dialogItem.id, draftName.trim()),
                 'Breakdown item renamed.',
               );
             }}
@@ -589,13 +614,13 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
           </form>
         </Modal>
       )}
-      {dialog === 'move' && selected && (
+      {dialog === 'move' && dialogItem && (
         <Modal title="Move breakdown item" onClose={closeDialog}>
           <form
             onSubmit={(event) => {
               event.preventDefault();
               void run(
-                () => services.planning.delivery.moveItem(selected.id, draftParent || null),
+                () => services.planning.delivery.moveItem(dialogItem.id, draftParent || null),
                 'Breakdown item moved.',
               );
             }}
@@ -613,14 +638,14 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
                   .filter(
                     (item) =>
                       item.projectId === projectId &&
-                      item.id !== selected.id &&
-                      !domainDescendants(snapshot.breakdownItems, selected.id).some(
+                      item.id !== dialogItem.id &&
+                      !domainDescendants(snapshot.breakdownItems, dialogItem.id).some(
                         (descendant) => descendant.id === item.id,
                       ),
                   )
                   .map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name}
+                      {treeOptionLabel(snapshot.breakdownItems, item.id)}
                     </option>
                   ))}
               </select>
@@ -639,13 +664,13 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
           </form>
         </Modal>
       )}
-      {dialog === 'delete' && selected && (
-        <Modal title={`Delete ${selected.name}?`} onClose={closeDialog}>
+      {dialog === 'delete' && dialogItem && (
+        <Modal title={`Delete ${dialogItem.name}?`} onClose={closeDialog}>
           <form
             onSubmit={(event) => {
               event.preventDefault();
               void run(
-                () => services.planning.delivery.deleteItem(selected.id),
+                () => services.planning.delivery.deleteItem(dialogItem.id),
                 'Breakdown item and all descendants deleted.',
               );
             }}
@@ -670,6 +695,19 @@ export default function DeliveryApp({ services }: RemoteProps): React.ReactEleme
           </form>
         </Modal>
       )}
+      {(dialog === 'rename' || dialog === 'move' || dialog === 'delete') &&
+        dialogItemId !== null &&
+        dialogItem === undefined && (
+          <Modal title="Breakdown item no longer exists" onClose={closeDialog}>
+            <p>
+              This item was deleted or changed in another session. The pending action was refused so
+              it cannot be applied to a different item.
+            </p>
+            <button type="button" className="button" onClick={closeDialog}>
+              Close
+            </button>
+          </Modal>
+        )}
     </section>
   );
 }

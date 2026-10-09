@@ -74,6 +74,26 @@ describe('standalone adapters and hosted integration', () => {
     expect(screen.getByRole('button', { name: /Adaeze Okafor, 2026-03.*7,880/ })).toBeTruthy();
   });
 
+  it('disables cost entry when the selected month has no rate coverage', async () => {
+    const appServices = await services();
+    for (const rate of appServices.planning
+      .getSnapshot()
+      .rateRecords.filter((value) => value.employeeId === 'emp-001')) {
+      await appServices.planning.people.removeRate(rate.id);
+    }
+    const user = userEvent.setup();
+    render(<Standalone name="Delivery" App={DeliveryApp} services={appServices} />);
+    await user.selectOptions(screen.getByLabelText('Unit'), 'cost');
+    await user.click(screen.getByRole('button', { name: /Adaeze Okafor, 2026-03.*0\.00/ }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Edit allocation' }));
+    expect(dialog.getByRole('spinbutton')).toHaveProperty('disabled', true);
+    expect(dialog.getByRole('button', { name: 'Save allocation' })).toHaveProperty(
+      'disabled',
+      true,
+    );
+    expect(dialog.getByText(/Cost input is disabled/)).toBeTruthy();
+  });
+
   it('pushes Shell session updates into both mounted apps and updates Delivery when People corrects a rate', async () => {
     const appServices = await services();
     const user = userEvent.setup();
@@ -192,9 +212,49 @@ describe('standalone adapters and hosted integration', () => {
       .getSnapshot()
       .breakdownItems.filter((item) => item.projectId === 'prj-1' && item.parentId === null);
     for (const root of roots) await appServices.planning.delivery.deleteItem(root.id);
+    expect(screen.getByText('No breakdown items in this project. Add one to begin.')).toBeTruthy();
     await user.selectOptions(screen.getByLabelText('Project'), 'prj-2');
     expect(screen.queryByRole('heading', { name: 'Ledger migration' })).toBeNull();
     expect(screen.getByRole('heading', { name: 'Reporting Platform' })).toBeTruthy();
+  });
+
+  it('labels tree parents with paths and refuses a rename whose target disappeared', async () => {
+    const appServices = await services();
+    const user = userEvent.setup();
+    render(<Standalone name="Delivery" App={DeliveryApp} services={appServices} />);
+    await user.click(screen.getByRole('button', { name: '+ Add' }));
+    const createDialog = within(screen.getByRole('dialog', { name: 'Add breakdown item' }));
+    expect(
+      createDialog.getByRole('option', { name: 'Ledger migration / Discovery · wbs-004' }),
+    ).toBeTruthy();
+    await user.click(createDialog.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Design' }));
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    await act(() => appServices.planning.delivery.deleteItem('wbs-012'));
+    expect(screen.getByRole('dialog', { name: 'Breakdown item no longer exists' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Save name' })).toBeNull();
+    expect(screen.getByText(/pending action was refused/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(
+      appServices.planning.getSnapshot().breakdownItems.some((item) => item.id === 'wbs-012'),
+    ).toBe(false);
+    expect(
+      appServices.planning.getSnapshot().breakdownItems.find((item) => item.id === 'wbs-001')?.name,
+    ).toBe('Ledger migration');
+  });
+
+  it('refuses a delete whose dialog target disappeared instead of deleting the fallback selection', async () => {
+    const appServices = await services();
+    const user = userEvent.setup();
+    render(<Standalone name="Delivery" App={DeliveryApp} services={appServices} />);
+    await user.click(screen.getByRole('button', { name: 'Design' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await act(() => appServices.planning.delivery.deleteItem('wbs-012'));
+    expect(screen.getByRole('dialog', { name: 'Breakdown item no longer exists' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Delete item' })).toBeNull();
+    expect(
+      appServices.planning.getSnapshot().breakdownItems.find((item) => item.id === 'wbs-001')?.name,
+    ).toBe('Ledger migration');
   });
 
   it('distinguishes viewing a rounded value from explicitly editing that same rounded text', async () => {

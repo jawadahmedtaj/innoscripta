@@ -14,6 +14,16 @@ import {
 
 export type { MonthPricing, PriceSegment } from './shared';
 
+function displaySafe(value: number, unit: AllocationUnit, label: string): number {
+  const decimals = unit === 'percent' ? 1 : 2;
+  const scale = 10 ** decimals;
+  const scaled = assertFiniteResult(value * scale, `${label} display ticks`);
+  if (!Number.isSafeInteger(Math.round(scaled))) {
+    throw new DomainValidationError(`${label} display ticks exceed safe integer precision`);
+  }
+  return value;
+}
+
 export function priceMonth(
   employee: Employee,
   rates: readonly RateRecord[],
@@ -82,15 +92,27 @@ export function fromPm(
   const capacity = monthlyCapacity(employee, month);
   switch (unit) {
     case 'pm':
-      return amount;
+      return displaySafe(amount, unit, 'Person-month');
     case 'hours':
-      return assertFiniteResult(amount * capacity.capacityHours, 'Hours conversion');
+      return displaySafe(
+        assertFiniteResult(amount * capacity.capacityHours, 'Hours conversion'),
+        unit,
+        'Hours',
+      );
     case 'percent':
-      return assertFiniteResult(amount * 100, 'Percentage conversion');
+      return displaySafe(
+        assertFiniteResult(amount * 100, 'Percentage conversion'),
+        unit,
+        'Percentage',
+      );
     case 'cost':
-      return assertFiniteResult(
-        amount * priceMonth(employee, rates, month).costPerPm * currencyMultiplier(currency),
-        'Cost conversion',
+      return displaySafe(
+        assertFiniteResult(
+          amount * priceMonth(employee, rates, month).costPerPm * currencyMultiplier(currency),
+          'Cost conversion',
+        ),
+        unit,
+        'Cost',
       );
     default:
       return assertNever(unit);
@@ -106,6 +128,7 @@ export function toPm(
   currency: Currency = 'EUR',
 ): number {
   assertNonNegativeFinite(input, `${unit} input`);
+  displaySafe(input, unit, `${unit} input`);
   const capacity = monthlyCapacity(employee, month);
   switch (unit) {
     case 'pm':

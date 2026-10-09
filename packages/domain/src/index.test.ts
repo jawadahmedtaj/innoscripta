@@ -375,6 +375,10 @@ describe('effective rates, pricing, and units', () => {
   it('rejects finite inputs whose converted or displayed values exceed safe numeric precision', () => {
     // Large but numerically safe overcapacity remains a warning, not a validation failure.
     expect(fromPm(500, 'pm', ada, adaRates, '2026-03')).toBe(500);
+    expect(fromPm(500, 'hours', ada, adaRates, '2026-03')).toBe(88_000);
+    expect(() => fromPm(DOMAIN_LIMITS.maxAllocationPm, 'hours', ada, adaRates, '2026-03')).toThrow(
+      /display ticks exceed safe integer precision/,
+    );
     expect(() => fromPm(Number.MAX_VALUE, 'hours', ada, adaRates, '2026-03')).toThrow(/at most/);
     expect(() => fromPm(Number.MAX_VALUE, 'pm', ada, adaRates, '2026-03')).toThrow(/at most/);
     expect(() =>
@@ -526,5 +530,41 @@ describe('cross-project capacity', () => {
       amount: allocation.amount,
     }));
     expect(getCapacity(seedStyleAllocations, ada.id, '2026-03').latest?.id).toBe('c');
+  });
+
+  it('keeps exact 100% decimal boundaries valid across allocation orderings', () => {
+    const orderings = [
+      [0.2, 0.4, 0.3, 0.1],
+      [0.1, 0.3, 0.2, 0.4],
+      [0.4, 0.3, 0.2, 0.1],
+      [0.3, 0.1, 0.4, 0.2],
+    ];
+    orderings.forEach((amounts, orderingIndex) => {
+      const allocations = amounts.map((amount, index) => ({
+        id: `boundary-${orderingIndex}-${index}`,
+        breakdownItemId: `boundary-leaf-${orderingIndex}-${index}`,
+        employeeId: ada.id,
+        month: '2026-03',
+        amount,
+      }));
+      expect(getCapacity(allocations, ada.id, '2026-03')).toMatchObject({
+        totalPm: 1,
+        overCapacity: false,
+      });
+    });
+  });
+
+  it('flags a deliberate one-ULP amount above 100%', () => {
+    const allocation: Allocation = {
+      id: 'one-ulp-over',
+      breakdownItemId: 'leaf-one-ulp-over',
+      employeeId: ada.id,
+      month: '2026-03',
+      amount: 1 + Number.EPSILON,
+    };
+    expect(getCapacity([allocation], ada.id, '2026-03')).toMatchObject({
+      totalPm: 1 + Number.EPSILON,
+      overCapacity: true,
+    });
   });
 });
