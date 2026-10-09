@@ -442,6 +442,40 @@ describe('reconciliation and tree invariants', () => {
 });
 
 describe('cross-project capacity', () => {
+  it('ignores zeroed-out assignments when identifying the latest contributor', () => {
+    const allocations: Allocation[] = [
+      {
+        id: 'project-a-leaf',
+        breakdownItemId: 'a',
+        employeeId: ada.id,
+        month: '2026-03',
+        amount: 0.6,
+        editSequence: 2,
+      },
+      {
+        id: 'project-b-leaf',
+        breakdownItemId: 'b',
+        employeeId: ada.id,
+        month: '2026-03',
+        amount: 0.6,
+        editSequence: 3,
+      },
+      {
+        id: 'removed-effort',
+        breakdownItemId: 'c',
+        employeeId: ada.id,
+        month: '2026-03',
+        amount: 0,
+        editSequence: 4,
+      },
+    ];
+    expect(getCapacity(allocations, ada.id, '2026-03')).toMatchObject({
+      totalPm: 1.2,
+      overCapacity: true,
+      latest: allocations[1],
+    });
+    expect(getCapacity([allocations[2]!], ada.id, '2026-03').latest).toBeUndefined();
+  });
   it('flags strictly above 100%, keeps exact capacity valid, and chooses latest edits', () => {
     const allocations: Allocation[] = [
       {

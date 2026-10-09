@@ -48,4 +48,3 @@ export function gridMonths(data: Pick<SeedData, 'meta' | 'allocations'>): string
   data.allocations.forEach((allocation) => months.add(allocation.month));
   return [...months].sort();
 }
-

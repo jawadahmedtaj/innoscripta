@@ -1,9 +1,5 @@
 import type { AllocationUnit } from '@baseline/contracts';
-import {
-  assertFiniteResult,
-  assertNever,
-  DomainValidationError,
-} from './shared';
+import { assertFiniteResult, assertNever, DomainValidationError } from './shared';
 
 export function precisionForUnit(unit: AllocationUnit): number {
   switch (unit) {
@@ -107,4 +103,3 @@ export function reconcile(
   }
   return Object.fromEntries(values.map((value, index) => [value.id, (ticks[index] ?? 0) / scale]));
 }
-

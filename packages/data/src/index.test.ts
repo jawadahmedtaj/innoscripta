@@ -288,7 +288,10 @@ describe('data service persistence boundary', () => {
 
   it('cascades tree deletion and leaves no dangling allocation references', async () => {
     const services = await createServices({ seed, storage, newId: nextId('tree') });
-    const subtree = new Set(['wbs-001', ...descendants(seed.breakdownItems, 'wbs-001').map(item => item.id)]);
+    const subtree = new Set([
+      'wbs-001',
+      ...descendants(seed.breakdownItems, 'wbs-001').map((item) => item.id),
+    ]);
     await services.planning.delivery.deleteItem('wbs-001');
     const snapshot = services.planning.getSnapshot();
     expect(snapshot.breakdownItems.some((item) => item.id === 'wbs-001')).toBe(false);

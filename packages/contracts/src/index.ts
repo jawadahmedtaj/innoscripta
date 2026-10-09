@@ -1,13 +1,38 @@
 import type { ComponentType } from 'react';
 
-export interface Employee { id: string; name: string; role: string; weeklyHours: number }
-export interface RateRecord { id: string; employeeId: string; validFrom: string; hourlyCost: number }
-export interface Project { id: string; name: string; startDate: string; endDate: string }
-export interface BreakdownItem { id: string; projectId: string; parentId: string | null; name: string }
+export interface Employee {
+  id: string;
+  name: string;
+  role: string;
+  weeklyHours: number;
+}
+export interface RateRecord {
+  id: string;
+  employeeId: string;
+  validFrom: string;
+  hourlyCost: number;
+}
+export interface Project {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+export interface BreakdownItem {
+  id: string;
+  projectId: string;
+  parentId: string | null;
+  name: string;
+}
 /** amount is always person-months. Absent editSequence means untouched seed data. */
 export interface Allocation {
-  id: string; breakdownItemId: string; employeeId: string; month: string; amount: number;
-  editSequence?: number; editedBy?: string;
+  id: string;
+  breakdownItemId: string;
+  employeeId: string;
+  month: string;
+  amount: number;
+  editSequence?: number;
+  editedBy?: string;
 }
 export interface SeedData {
   meta: { name: string; version: string; gridHorizon: { from: string; to: string }; note: string };
@@ -17,10 +42,16 @@ export interface SeedData {
   breakdownItems: readonly BreakdownItem[];
   allocations: readonly Allocation[];
 }
-export interface PlanningData extends SeedData { revision: number; editSequence: number }
+export interface PlanningData extends SeedData {
+  revision: number;
+  editSequence: number;
+}
 export type Currency = 'EUR' | 'USD' | 'GBP';
 export type AllocationUnit = 'hours' | 'pm' | 'percent' | 'cost';
-export interface Session { activeUser: string; currency: Currency }
+export interface Session {
+  activeUser: string;
+  currency: Currency;
+}
 export type Subscribe = (listener: () => void) => () => void;
 export interface SessionService {
   getSnapshot: () => Session;
@@ -47,7 +78,19 @@ export interface PlanningService {
   people: PeopleCommands;
   delivery: DeliveryCommands;
 }
-export interface AppServices { planning: PlanningService; session: SessionService }
-export interface RemoteProps { services: AppServices }
-export interface RemoteModule { default: ComponentType<RemoteProps>; reactIdentity: unknown }
-export interface RuntimeConfig { peopleUrl: string; deliveryUrl: string; seedUrl: string }
+export interface AppServices {
+  planning: PlanningService;
+  session: SessionService;
+}
+export interface RemoteProps {
+  services: AppServices;
+}
+export interface RemoteModule {
+  default: ComponentType<RemoteProps>;
+  reactIdentity: unknown;
+}
+export interface RuntimeConfig {
+  peopleUrl: string;
+  deliveryUrl: string;
+  seedUrl: string;
+}

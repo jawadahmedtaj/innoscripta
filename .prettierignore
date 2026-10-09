@@ -1,0 +1,5 @@
+node_modules
+dist
+data/baseline-seed.json
+docs/case-study.txt
+package-lock.json

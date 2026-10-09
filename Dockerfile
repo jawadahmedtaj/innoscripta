@@ -6,7 +6,7 @@ RUN npm ci
 COPY . .
 
 FROM toolchain AS checks
-RUN npm run typecheck && npm run lint && npm test
+CMD ["npm", "run", "check"]
 
 FROM toolchain AS build
 RUN npm run build

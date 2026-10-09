@@ -16,10 +16,9 @@ export function getCapacity(
     return sum + allocation.amount;
   }, 0);
   assertFiniteResult(totalPm, 'Capacity total');
-  const sorted = [...relevant].sort(
-    (a, b) => (a.editSequence ?? 0) - (b.editSequence ?? 0) || a.id.localeCompare(b.id),
-  );
+  const sorted = relevant
+    .filter((allocation) => allocation.amount > 0)
+    .sort((a, b) => (a.editSequence ?? 0) - (b.editSequence ?? 0) || a.id.localeCompare(b.id));
   const latest = sorted.at(-1);
   return { totalPm, overCapacity: totalPm > 1, latest };
 }
-
