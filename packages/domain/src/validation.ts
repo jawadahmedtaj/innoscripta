@@ -261,31 +261,31 @@ function validateSeedShape(input: Record<string, unknown>): SeedData {
   const meta = parseMeta(input.meta, issues);
   const employees = Array.isArray(input.employees)
     ? input.employees
-        .map((value, index) => parseEmployee(value, index, issues))
+        .map((value: unknown, index) => parseEmployee(value, index, issues))
         .filter((value): value is Employee => value !== undefined)
     : [];
   if (!Array.isArray(input.employees)) issues.push('employees must be an array');
   const rates = Array.isArray(input.rateRecords)
     ? input.rateRecords
-        .map((value, index) => parseRate(value, index, issues))
+        .map((value: unknown, index) => parseRate(value, index, issues))
         .filter((value): value is RateRecord => value !== undefined)
     : [];
   if (!Array.isArray(input.rateRecords)) issues.push('rateRecords must be an array');
   const projects = Array.isArray(input.projects)
     ? input.projects
-        .map((value, index) => parseProject(value, index, issues))
+        .map((value: unknown, index) => parseProject(value, index, issues))
         .filter((value): value is Project => value !== undefined)
     : [];
   if (!Array.isArray(input.projects)) issues.push('projects must be an array');
   const items = Array.isArray(input.breakdownItems)
     ? input.breakdownItems
-        .map((value, index) => parseItem(value, index, issues))
+        .map((value: unknown, index) => parseItem(value, index, issues))
         .filter((value): value is BreakdownItem => value !== undefined)
     : [];
   if (!Array.isArray(input.breakdownItems)) issues.push('breakdownItems must be an array');
   const allocations = Array.isArray(input.allocations)
     ? input.allocations
-        .map((value, index) => parseAllocation(value, index, issues))
+        .map((value: unknown, index) => parseAllocation(value, index, issues))
         .filter((value): value is Allocation => value !== undefined)
     : [];
   if (!Array.isArray(input.allocations)) issues.push('allocations must be an array');
@@ -380,4 +380,3 @@ function validateSeedShape(input: Record<string, unknown>): SeedData {
   if (issues.length > 0) throw new DomainValidationError(issues);
   return { meta, employees, rateRecords: rates, projects, breakdownItems: items, allocations };
 }
-

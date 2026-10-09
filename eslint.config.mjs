@@ -8,10 +8,18 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
-      'no-restricted-imports': ['error', { patterns: [
-        { group: ['**/apps/people/**', '**/apps/delivery/**', '**/apps/shell/**'], message: 'Apps consume public contracts, not sibling source.' }
-      ] }]
-    }
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/apps/people/**', '**/apps/delivery/**', '**/apps/shell/**'],
+              message: 'Apps consume public contracts, not sibling source.',
+            },
+          ],
+        },
+      ],
+    },
   },
-  { files: ['tests/**'], rules: { 'no-restricted-imports': 'off' } }
+  { files: ['tests/**'], rules: { 'no-restricted-imports': 'off' } },
 );

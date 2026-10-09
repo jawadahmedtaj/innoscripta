@@ -1,8 +1,4 @@
-export {
-  DomainValidationError,
-  DOMAIN_LIMITS,
-  FX_RATES,
-} from './shared';
+export { DomainValidationError, DOMAIN_LIMITS, FX_RATES } from './shared';
 export type {
   CapacityResult,
   DeleteTreeResult,

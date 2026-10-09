@@ -1,8 +1,4 @@
-import type {
-  Allocation,
-  BreakdownItem,
-  Currency,
-} from '@baseline/contracts';
+import type { Allocation, BreakdownItem, Currency } from '@baseline/contracts';
 
 /** An input failed one or more domain boundary invariants. */
 export class DomainValidationError extends Error {
@@ -123,4 +119,3 @@ export function assertFiniteResult(value: number, label: string): number {
 export function assertNever(value: never): never {
   throw new DomainValidationError(`Unsupported value '${String(value)}'`);
 }
-

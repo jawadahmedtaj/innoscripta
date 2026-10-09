@@ -203,4 +203,3 @@ export function aggregateAllocation(
   }, 0);
   return assertFiniteResult(total, 'Aggregated allocation');
 }
-
