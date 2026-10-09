@@ -1,0 +1,17 @@
+services:
+  baseline:
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "8080:8080"
+    environment:
+      PEOPLE_REMOTE_URL: ${PEOPLE_REMOTE_URL:-/people/remoteEntry.js}
+      DELIVERY_REMOTE_URL: ${DELIVERY_REMOTE_URL:-/delivery/remoteEntry.js}
+    restart: unless-stopped
+  checks:
+    profiles: ["checks"]
+    build:
+      context: .
+      target: checks
+    command: ["npm", "run", "check"]
