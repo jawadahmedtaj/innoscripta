@@ -34,6 +34,21 @@ export function tree(items: readonly BreakdownItem[], projectId: string): TreeIt
   return items.filter((item) => item.projectId === projectId && item.parentId === null).map(make);
 }
 
+/** Include the complete path and ID so duplicate fixture names remain selectable. */
+export function treeOptionLabel(items: readonly BreakdownItem[], itemId: string): string {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const path: string[] = [];
+  const visited = new Set<string>();
+  let current = byId.get(itemId);
+  while (current !== undefined) {
+    if (visited.has(current.id)) break;
+    visited.add(current.id);
+    path.push(current.name);
+    current = current.parentId === null ? undefined : byId.get(current.parentId);
+  }
+  return `${path.reverse().join(' / ')} · ${itemId}`;
+}
+
 export function displayName(employee: Employee): string {
   return employee.name.length > 20 ? employee.name.slice(0, 19) + '…' : employee.name;
 }
