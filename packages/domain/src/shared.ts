@@ -53,12 +53,11 @@ export const CURRENCY_RATES: Readonly<Record<Currency, number>> = Object.freeze(
 });
 export const FX_RATES = CURRENCY_RATES;
 
-/** Generous persistence bounds keep later display conversions inside safe numeric precision. */
-// 400 PM remains far beyond normal planning values while keeping a worst-case
-// 60-person x 13-month cost grid inside safe reconciliation ticks.
+/** Limits follow numeric precision, not capacity; dataset totals receive a separate safety check. */
 export const DOMAIN_LIMITS = Object.freeze({
-  maxAllocationPm: 400,
-  maxHourlyCost: 1_000_000,
+  maxAllocationPm: Number.MAX_SAFE_INTEGER / 100,
+  // Maximum 23 weekdays × 8 hours × largest illustrative FX × cents per currency unit.
+  maxHourlyCost: Number.MAX_SAFE_INTEGER / (23 * 8 * 1.1 * 100),
 });
 
 export const SUPPORTED_HOURS = new Set([20, 32, 40]);

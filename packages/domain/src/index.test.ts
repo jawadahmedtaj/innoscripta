@@ -4,6 +4,7 @@ import type { Allocation, BreakdownItem, Employee, RateRecord } from '@baseline/
 import { describe, expect, it } from 'vitest';
 import {
   DomainValidationError,
+  DOMAIN_LIMITS,
   aggregateAllocation,
   createBreakdownItem,
   deleteBreakdownItem,
@@ -110,7 +111,7 @@ describe('seed validation and calendar', () => {
       parseSeed({
         ...seed,
         rateRecords: seed.rateRecords.map((rate) =>
-          rate.id === 'rate-001' ? { ...rate, hourlyCost: 1_000_001 } : rate,
+          rate.id === 'rate-001' ? { ...rate, hourlyCost: DOMAIN_LIMITS.maxHourlyCost + 1 } : rate,
         ),
       }),
     ).toThrow(/at most/);
@@ -126,7 +127,9 @@ describe('seed validation and calendar', () => {
       parseSeed({
         ...seed,
         allocations: seed.allocations.map((allocation) =>
-          allocation.id === 'alloc-001' ? { ...allocation, amount: 401 } : allocation,
+          allocation.id === 'alloc-001'
+            ? { ...allocation, amount: DOMAIN_LIMITS.maxAllocationPm + 1 }
+            : allocation,
         ),
       }),
     ).toThrow(/at most/);
@@ -370,6 +373,8 @@ describe('effective rates, pricing, and units', () => {
   });
 
   it('rejects finite inputs whose converted or displayed values exceed safe numeric precision', () => {
+    // Large but numerically safe overcapacity remains a warning, not a validation failure.
+    expect(fromPm(500, 'pm', ada, adaRates, '2026-03')).toBe(500);
     expect(() => fromPm(Number.MAX_VALUE, 'hours', ada, adaRates, '2026-03')).toThrow(/at most/);
     expect(() => fromPm(Number.MAX_VALUE, 'pm', ada, adaRates, '2026-03')).toThrow(/at most/);
     expect(() =>
