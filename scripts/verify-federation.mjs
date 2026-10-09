@@ -8,7 +8,13 @@ const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 async function startServer(environment = {}) {
   const child = spawn(process.execPath, ['scripts/serve.mjs'], {
-    env: { ...process.env, PORT: '0', PEOPLE_REMOTE_URL: '/people/remoteEntry.js', DELIVERY_REMOTE_URL: '/delivery/remoteEntry.js', ...environment },
+    env: {
+      ...process.env,
+      PORT: '0',
+      PEOPLE_REMOTE_URL: '/people/remoteEntry.js',
+      DELIVERY_REMOTE_URL: '/delivery/remoteEntry.js',
+      ...environment,
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let output = '';
@@ -259,7 +265,11 @@ async function hosted(server) {
 
 async function standaloneDelivery(server) {
   const page = await openPage(server.origin, '/delivery/', makeStorage());
-  await waitFor(page.dom, () => bodyText(page.dom).includes('Staffing plan') && bodyText(page.dom).includes('€7,880.00'), 'standalone Delivery and the seed reference');
+  await waitFor(
+    page.dom,
+    () => bodyText(page.dom).includes('Staffing plan') && bodyText(page.dom).includes('€7,880.00'),
+    'standalone Delivery and the seed reference',
+  );
   await assertRemoteExecuted(page, 'delivery');
   assert.match(bodyText(page.dom), /Standalone remote/);
   await closePage(page);
