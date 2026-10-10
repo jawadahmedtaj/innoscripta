@@ -4,3 +4,4 @@ coverage/
 .runtime/
 test-results/
 *.log
+/docs/
