@@ -1,0 +1,47 @@
+{
+  "name": "baseline-planning-suite",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.20.0",
+    "npm": "11.19.0"
+  },
+  "packageManager": "npm@11.19.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write apps packages tests scripts *.mjs *.ts *.json compose.yaml README.md",
+    "format:check": "prettier --check apps packages tests scripts *.mjs *.ts *.json compose.yaml README.md",
+    "test": "vitest run",
+    "test:domain": "vitest run packages/domain",
+    "test:integration": "vitest run tests/integration packages/data",
+    "build": "rspack build --config rspack.config.mjs",
+    "build:shell": "rspack build --config rspack.config.mjs --config-name shell",
+    "build:people": "rspack build --config rspack.config.mjs --config-name people",
+    "build:delivery": "rspack build --config rspack.config.mjs --config-name delivery",
+    "start": "node scripts/serve.mjs",
+    "verify:runtime": "node scripts/verify-runtime.mjs",
+    "verify:federation": "node scripts/verify-federation.mjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run verify:runtime && npm run verify:federation"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@rspack/cli": "2.2.8",
+    "@rspack/core": "2.2.8",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "24.10.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.12.0",
+    "jsdom": "30.1.2",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.1",
+    "vitest": "5.0.3"
+  }
+}
