@@ -8,15 +8,15 @@ Executed in the supplied workspace on 2026-10-10, with Node 24.20.0 and npm 11.1
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `npm run typecheck`                                      | Passed: strict TypeScript, no emit, unchecked-index and exact-optional checks enabled                                                                                                      |
 | `npm run lint`                                           | Passed: ESLint, including no explicit `any` and application import boundaries                                                                                                              |
-| `npm test`                                               | Passed: 34 tests in four files                                                                                                                                                             |
-| Pure domain tests                                        | 15 passed: original fixture, reference, calendar/rates, missing coverage, conversions/drift, rounding, tree, capacity and numerical validation                                             |
+| `npm test`                                               | Passed: 39 tests in four files                                                                                                                                                             |
+| Pure domain tests                                        | 17 passed: original fixture, reference, calendar/rates, missing coverage, conversions/drift, rounding, tree, capacity and numerical validation                                             |
 | Persistence tests                                        | 8 passed: initialize once, reload, serialized commands, invalid inputs, edit ordering, cascade, lifecycle cleanup, atomic failed writes                                                    |
 | Grid projection tests                                    | 3 passed: reconciliation, percentage policy, adversarial fractional parent/child totals                                                                                                    |
-| React integration tests                                  | 8 passed: standalone adapters, hosted session/rate/capacity updates, persistence, failure/retry, rounded edits and parent/empty-project behavior                                           |
+| React integration tests                                  | 11 passed: standalone adapters, hosted session/rate/capacity updates, persistence, failure/retry, rounded edits and parent/empty-project behavior                                          |
 | `npm run build`                                          | Passed: separate Shell, People and Delivery production builds                                                                                                                              |
 | `npm run verify:runtime`                                 | Passed: environment-generated configuration, default/alternate/missing routes and unchanged Shell JS hash                                                                                  |
 | `npm run verify:federation`                              | Passed: actual built remote entries executed over HTTP in JSDOM, both standalone apps, hosted containers, React identity, live rate/session updates, persistence, isolation and relocation |
-| Fresh tracked-source checkout: `npm ci && npm run check` | Passed in an empty temporary directory from `git archive HEAD`, including all 34 tests, builds and both runtime/federation checks                                                          |
+| Fresh tracked-source checkout: `npm ci && npm run check` | Passed in an empty temporary directory from `git archive HEAD`, at source commit `5eedca1`, including all 39 tests, builds and both runtime/federation checks                              |
 | `docker compose config`                                  | Passed                                                                                                                                                                                     |
 | `docker compose --profile checks config`                 | Passed                                                                                                                                                                                     |
 | `docker manifest inspect node:24.20.0-bookworm-slim`     | Passed: the pinned multi-platform base image exists                                                                                                                                        |
@@ -37,7 +37,32 @@ Used the T3 collaborative browser against production assets served by the same `
 - Restarted the server with `DELIVERY_REMOTE_URL=/missing/delivery.js`. Delivery showed its in-panel error; Shell controls and People were usable. Restored the default environment and refreshed; both remotes recovered.
 - Restarted with both remote URLs under `/alternate/`. The browser loaded those entries and their lazy chunks successfully and again verified React identity. Compared SHA-256 hashes of **every Shell JS file** before and after: no changes, and no rebuild between those server restarts.
 
-Browser navigation, form editing, DOM inspection and persisted-state checks succeeded. This client's screenshot/snapshot capture failed, so no pixel-level screenshot verification is claimed. No alternative browser system was used. Test-only browser edits are reset before handover; the repository seed was never edited.
+Browser navigation, form editing, DOM inspection and persisted-state checks succeeded. Initial screenshot capture failed; during the final validation it succeeded and the desktop layout was inspected. Some focused interaction calls were unreliable, so native DOM events/form submission through the same T3 browser completed those steps and the resulting UI and persistence were checked. No alternative browser system was used. Test-only browser edits are reset before handover; the repository seed was never edited.
+
+## Final validation and fixes
+
+Re-read the complete brief and audited calculations, persistence, UI behavior, federation and container startup independently. The audit found and fixed:
+
+- A floating-point sum of 0.2 + 0.4 + 0.3 + 0.1 PM could falsely flag 100% as overcapacity. Compensated summation now retains the strict boundary; decimal permutations and deliberate `1 + Number.EPSILON` have separate regressions.
+- Direct unit conversions could produce unsafe display ticks for extreme finite values. Conversions now reject those values before rendering, while numerically safe overcapacity remains allowed.
+- Cost input itself remained editable when its Save button was disabled for missing pricing. Both are now disabled with the same explanation.
+- Parent selectors with duplicate names were ambiguous. They now include full paths and IDs, and empty projects have a clear empty state.
+- A tree dialog could target the fallback selection if another tab deleted the original node. Rename/move/delete dialogs now retain the original ID and refuse the stale action.
+
+Final source commit `5eedca1` passed `npm ci && npm run check` from a fresh archive at `/tmp/baseline-clean-uY0PZl`: **39 tests**, all three builds, and both runtime/federation checks. Domain tests additionally passed under `TZ=America/Los_Angeles` and `TZ=Pacific/Auckland` (17 tests each). Formatting and `git diff --check` passed.
+
+Additional browser validation covered:
+
+- Rate correction from 95 to 100, GBP display of £6,936, and propagation of active user `emp-002` to both apps. Standalone tabs retained the same session and rates. Restoring the 95 rate in standalone People updated both already-mounted Delivery views to £6,698.
+- Duplicate effective-date rejection with no extra record; adding a March 20 rate at 120 changed the live cost to £7,378, and removal restored £6,698.
+- Explicit GBP cost entry of 6,698 saved 0.5 PM with edit attribution. Eighty unit changes left persisted data byte-for-byte unchanged.
+- 0.6 PM in each of two projects produced the combined capacity warning in People and Delivery, named the latest contributor, and retained its edit order after refresh.
+- Every displayed row and column total reconciled in PM, hours and cost, with zero tick mismatches in browser DOM checks.
+- A temporary tree node was created, renamed and moved. Deleting it through Shell while a standalone rename dialog was open produced the stale-target message; the original 90 items remained intact.
+- Partially uncovered March pricing visibly flagged the cell and disabled both Cost input and Save.
+- A disposable server at port 8081 used the failed remote URL; People and Shell currency controls stayed usable. Restarting it with defaults recovered both remotes. Port 8082 used `/alternate/` runtime URLs and loaded both remote entries and their lazy chunks with verified React identity. Shell JS hashes were unchanged throughout these runtime changes, with no intervening rebuild.
+
+Docker configuration still passes, but a fresh `docker compose build --progress=plain baseline` attempt failed because `/var/run/docker.sock` is absent. Container execution remains the only environment-blocked acceptance check.
 
 ## Fixture integrity
 
