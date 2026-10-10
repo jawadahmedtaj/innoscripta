@@ -11,8 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "format": "prettier --write apps packages tests scripts *.mjs *.ts *.json compose.yaml README.md docs/INTERVIEW.md docs/IMPLEMENTATION.md",
-    "format:check": "prettier --check apps packages tests scripts *.mjs *.ts *.json compose.yaml README.md docs/INTERVIEW.md docs/IMPLEMENTATION.md",
+    "format": "prettier --write apps packages tests scripts *.mjs *.ts *.json compose.yaml README.md",
+    "format:check": "prettier --check apps packages tests scripts *.mjs *.ts *.json compose.yaml README.md",
     "test": "vitest run",
     "test:domain": "vitest run packages/domain",
     "test:integration": "vitest run tests/integration packages/data",
