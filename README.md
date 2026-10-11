@@ -134,13 +134,3 @@ docker compose exec baseline sh -c 'sha256sum dist/shell/*.js'
 Refresh. Status lines show `/alternate/...` and verified React sharing; hashes stay unchanged. Alternative routes intentionally serve identical remote artifacts, including lazy chunks. Substitute a compatible independent remote host if desired. Restore defaults using the prior command.
 
 `npm run verify:runtime` automates environment/config/route/hash checks against production assets using disposable servers with default, relocated and failed URLs. `npm run verify:federation` executes actual remote entries over HTTP in JSDOM: hosted and standalone apps, singleton identity, rate/session propagation, persistence, failed loading and relocated URLs. These tests do not substitute local imports for remote entries. Mounted UI tests also cover panel retries.
-
-## Handover and limitations
-
-Validation completed: strict typechecking, ESLint, 39 tests, three production builds, runtime/federation checks and a fresh-source installation. Domain tests also passed under Los Angeles and Auckland timezones. The browser walkthrough verified the numerical reference, live updates, persistence, standalone apps, reconciliation and remote failure/recovery with unchanged Shell assets.
-
-Actual Docker image build and Compose execution remain unverified: the validation environment has no accessible Docker daemon. Compose configuration passed, and the same production server and assets were tested outside Docker. Run the Docker startup and checks commands above on a host with Docker.
-
-For an interview walkthrough, open Delivery's March reference and enter EUR 7,880 in Cost mode to retain 0.5 PM. Select **Compare both**, correct Adaeze's March 12 rate from 95 to 100, and show the live EUR 8,160 cost; switch to USD to show USD 8,976. Restore the rate and currency, demonstrate a derived parent and a safe tree move, then exceed capacity across two projects and refresh. Finish with the standalone URLs, runtime relocation/failure commands, public service contract and pure calculation tests.
-
-This is a local case study: no authentication, employee/project administration, multi-user backend, holidays, scheduling, offline mode, live FX, or mobile-specific workflow. Browser storage is bounded; failed writes are reported before new state is published. The supplied 60 people render directly without a grid/virtualization dependency. The service contract permits a backend later. Incompatible public contracts still need coordinated versioning; federation does not solve API evolution.
