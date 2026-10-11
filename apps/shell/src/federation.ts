@@ -28,7 +28,6 @@ function isRemote(value: unknown): value is RemoteModule {
     'reactIdentity' in value
   );
 }
-/** Native Module Federation container protocol; URLs are supplied only by runtime configuration. */
 export function loadFederatedRemote(
   name: 'people' | 'delivery',
   url: string,
