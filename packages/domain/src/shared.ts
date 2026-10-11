@@ -1,6 +1,5 @@
 import type { Allocation, BreakdownItem, Currency } from '@baseline/contracts';
 
-/** An input failed one or more domain boundary invariants. */
 export class DomainValidationError extends Error {
   readonly issues: readonly string[];
 

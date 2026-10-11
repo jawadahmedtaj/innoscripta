@@ -22,5 +22,4 @@ export {
 export { getCapacity } from './capacity';
 export { parseSeed, validatePlanningData } from './validation';
 
-/** Public alias used by display code when selecting precision for an allocation unit. */
 export { precisionForUnit as unitPrecision } from './rounding';
